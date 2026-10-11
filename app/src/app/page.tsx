@@ -1,69 +1,148 @@
-import Image from "next/image";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import { pool } from "@/lib/db";
+
+type SiteRow = {
+  id: string;
+  name: string;
+  url: string;
+  is_up: boolean | null;
+  status_code: number | null;
+  response_time_ms: number | null;
+  error: string | null;
+  checked_at: Date | null;
+  uptime_pct: string | null;
+  avg_ms: string | null;
+};
+
+type HistoryRow = { site_id: string; is_up: boolean };
+
+async function getSites() {
+  const { rows } = await pool.query<SiteRow>(`
+    SELECT s.id, s.name, s.url,
+           latest.is_up, latest.status_code, latest.response_time_ms,
+           latest.error, latest.checked_at,
+           stats.uptime_pct, stats.avg_ms
+    FROM sites s
+    LEFT JOIN LATERAL (
+      SELECT is_up, status_code, response_time_ms, error, checked_at
+      FROM checks c
+      WHERE c.site_id = s.id
+      ORDER BY checked_at DESC
+      LIMIT 1
+    ) latest ON true
+    LEFT JOIN LATERAL (
+      SELECT ROUND(100.0 * AVG(CASE WHEN is_up THEN 1 ELSE 0 END), 1) AS uptime_pct,
+             ROUND(AVG(response_time_ms)) AS avg_ms
+      FROM checks c
+      WHERE c.site_id = s.id AND c.checked_at > now() - interval '24 hours'
+    ) stats ON true
+    ORDER BY s.name
+  `);
+  return rows;
+}
+
+async function getHistory() {
+  const { rows } = await pool.query<HistoryRow>(`
+    SELECT site_id, is_up FROM (
+      SELECT site_id, is_up, checked_at,
+             ROW_NUMBER() OVER (PARTITION BY site_id ORDER BY checked_at DESC) AS rn
+      FROM checks
+    ) t
+    WHERE rn <= 30
+    ORDER BY checked_at
+  `);
+  return rows;
+}
+
+async function SiteList() {
+  await connection();
+  const [sites, history] = await Promise.all([getSites(), getHistory()]);
+
+  const historyBySite = new Map<string, boolean[]>();
+  for (const h of history) {
+    const list = historyBySite.get(h.site_id) ?? [];
+    list.push(h.is_up);
+    historyBySite.set(h.site_id, list);
+  }
+
+  if (sites.length === 0) {
+    return <p className="text-gray-500">No sites yet.</p>;
+  }
+
+  return (
+    <ul className="space-y-4">
+      {sites.map((site) => {
+        const status =
+          site.is_up === null ? "Pending" : site.is_up ? "Up" : "Down";
+        const dot =
+          site.is_up === null
+            ? "bg-gray-400"
+            : site.is_up
+              ? "bg-green-500"
+              : "bg-red-500";
+
+        return (
+          <li key={site.id} className="rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={`h-3 w-3 rounded-full ${dot}`} />
+                <div>
+                  <p className="font-medium">{site.name}</p>
+                  <p className="text-sm text-gray-500">{site.url}</p>
+                </div>
+              </div>
+              <div className="text-right text-sm">
+                <p className="font-medium">{status}</p>
+                <p className="text-gray-500">
+                  {site.response_time_ms !== null
+                    ? `${site.response_time_ms} ms`
+                    : "–"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 flex gap-0.5">
+              {(historyBySite.get(site.id) ?? []).map((up, i) => (
+                <span
+                  key={i}
+                  className={`h-6 flex-1 rounded-sm ${up ? "bg-green-500" : "bg-red-500"}`}
+                />
+              ))}
+            </div>
+
+            <div className="mt-2 flex justify-between text-xs text-gray-500">
+              <span>
+                24h uptime: {site.uptime_pct ?? "–"}% · avg{" "}
+                {site.avg_ms ?? "–"} ms
+              </span>
+              <span>
+                {site.checked_at
+                  ? `Checked ${new Date(site.checked_at).toLocaleTimeString("en-GB")}`
+                  : "Not checked yet"}
+              </span>
+            </div>
+
+            {site.error && (
+              <p className="mt-2 text-xs text-red-600">{site.error}</p>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="mx-auto max-w-3xl p-8">
+      <h1 className="text-2xl font-semibold">Vigilo</h1>
+      <p className="mb-6 text-sm text-gray-500">
+        Uptime for the sites you watch
+      </p>
+      <Suspense fallback={<p className="text-gray-500">Loading…</p>}>
+        <SiteList />
+      </Suspense>
+    </main>
   );
 }
