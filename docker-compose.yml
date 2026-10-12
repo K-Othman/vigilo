@@ -9,7 +9,47 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - vigilo-db-data:/var/lib/postgresql
+      - vigilo-db-data:/var/lib/postgresql/data
+      - ./app/db/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./app/db/seed.sql:/docker-entrypoint-initdb.d/002_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vigilo -d vigilo"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build: .
+    image: vigilo
+    container_name: vigilo-web
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: vigilo
+      DB_USER: vigilo
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    image: vigilo
+    container_name: vigilo-worker
+    command: ["node", "worker.js"]
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: vigilo
+      DB_USER: vigilo
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      CHECK_INTERVAL_SECONDS: 30
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started
 
 volumes:
   vigilo-db-data:

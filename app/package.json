@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "worker": "node --env-file=.env.local --import tsx src/app/worker/index.ts"
+    "worker": "node --env-file=.env.local --import tsx src/app/worker/index.ts",
+    "build:worker": "esbuild src/worker/index.ts --bundle --platform=node --target=node24 --outfile=dist/worker.js --external:pg-native"
   },
   "dependencies": {
     "next": "16.4.0",
@@ -21,6 +22,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",
@@ -28,4 +30,3 @@
     "typescript": "^5"
   }
 }
-
