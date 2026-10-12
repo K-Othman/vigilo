@@ -37,7 +37,7 @@ services:
   worker:
     image: vigilo
     container_name: vigilo-worker
-    command: ["node", "worker.js"]
+    command: ["worker.js"]
     environment:
       DB_HOST: db
       DB_PORT: 5432
