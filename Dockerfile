@@ -14,21 +14,19 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY app/ .
 RUN npm run build && npm run build:worker
 
-# runner: only what's needed to run, as a non-root user
-FROM node:${NODE_VERSION} AS runner
+# runner: distroless, just the Node runtime, no shell or package manager
+FROM gcr.io/distroless/nodejs24-debian13:nonroot AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 
-RUN mkdir .next && chown node:node .next
+COPY --from=builder --chown=nonroot:nonroot /app/.next/standalone ./
+COPY --from=builder --chown=nonroot:nonroot /app/.next/static ./.next/static
+COPY --from=builder --chown=nonroot:nonroot /app/public ./public
+COPY --from=builder --chown=nonroot:nonroot /app/dist/worker.js ./worker.js
 
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
-COPY --from=builder --chown=node:node /app/public ./public
-COPY --from=builder --chown=node:node /app/dist/worker.js ./worker.js
-
-USER node
+USER nonroot
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["server.js"]
