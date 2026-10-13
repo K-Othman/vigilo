@@ -1,5 +1,6 @@
 import { pool } from "../lib/db";
 import { checkSite } from "../lib/check";
+import { migrate } from "../lib/migrate";
 
 const INTERVAL_MS = Number(process.env.CHECK_INTERVAL_SECONDS ?? 60) * 1000;
 
@@ -44,6 +45,16 @@ async function runOnce() {
 }
 
 async function main() {
+  console.log(`Worker started, checking every ${INTERVAL_MS / 1000}s`);
+
+   try {
+    await migrate();
+    console.log("Database ready");
+  } catch (err) {
+    console.error("Migration failed:", err);
+    process.exit(1);
+  }
+  
   console.log(`Worker started, checking every ${INTERVAL_MS / 1000}s`);
 
   while (running) {
