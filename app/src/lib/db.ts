@@ -11,6 +11,7 @@ export const pool =
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     max: 5,
+    ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
   });
 
 if (process.env.NODE_ENV !== "production") globalForPg.pgPool = pool;
