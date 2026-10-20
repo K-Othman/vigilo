@@ -6,6 +6,7 @@ locals {
 
   # Roles the infra stack creates for ECS must use this prefix
   ecs_role_prefix = "${var.project_name}-ecs-"
+  sub_prefix      = "repo:${var.github_owner}@${var.github_owner_id}/${var.github_repo}@${var.github_repo_id}"
 }
 
 # ===========================================================================
@@ -32,7 +33,7 @@ data "aws_iam_policy_document" "apply_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${local.repo}:ref:refs/heads/main"]
+      values   = ["${local.sub_prefix}:ref:refs/heads/main"]
     }
   }
 }
@@ -57,7 +58,7 @@ data "aws_iam_policy_document" "plan_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${local.repo}:pull_request"]
+      values   = ["${local.sub_prefix}:pull_request"]
     }
   }
 }
