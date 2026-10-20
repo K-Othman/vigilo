@@ -1,6 +1,6 @@
 
 # create state-files S3 buket 
-resource "aws_s3_bucket" "bootstrap_s3_bucket" {  
+resource "aws_s3_bucket" "bootstrap_s3_bucket" {
   bucket = var.s3_bucket_name
 
   lifecycle {
@@ -9,7 +9,7 @@ resource "aws_s3_bucket" "bootstrap_s3_bucket" {
 }
 
 # enable S3 bucket versioning
-resource "aws_s3_bucket_versioning" "bootstrap_s3_bucket_versioning" { 
+resource "aws_s3_bucket_versioning" "bootstrap_s3_bucket_versioning" {
   bucket = aws_s3_bucket.bootstrap_s3_bucket.id
   versioning_configuration {
     status = "Enabled"
