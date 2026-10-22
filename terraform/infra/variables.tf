@@ -1,11 +1,11 @@
 variable "aws_region" {
-  description = "The AWS region to deploy resources in"
+  description = "AWS region for all resources"
   type        = string
   default     = "eu-west-2"
 }
 
 variable "project_name" {
-  description = "Prefix for resource names and the project tag"
+  description = "Prefix for resource names and the Project tag"
   type        = string
   default     = "vigilo"
 }
@@ -15,3 +15,4 @@ variable "repository_name" {
   type        = string
   default     = "K-Othman/vigilo"
 }
+
