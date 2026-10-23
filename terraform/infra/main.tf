@@ -1,12 +1,10 @@
-module "vigilo-vpc" {
+module "networking" {
   source = "./modules/networking"
 
-  project_name = "vigilo"
-  repository_name = "K-Othman/vigilo"
-  vpc_cidr = "10.0.0.0/16"
-  azs = ["eu-west-2a", "eu-west-2b"]
-  vigilo_public_subnet = ["10.0.1.0/24", "10.0.2.0/24"]
-  vigilo_app_private_subnets = ["10.0.11.0/24", "10.0.12.0/24"]
-  vigilo_db_private_subnets = ["10.0.21.0/24", "10.0.22.0/24"]
-
+  project_name               = var.project_name
+  vpc_cidr                   = var.vpc_cidr
+  azs                        = var.azs
+  vigilo_public_subnet       = var.public_subnets
+  vigilo_app_private_subnets = var.app_subnets
+  vigilo_db_private_subnets  = var.db_subnets
 }

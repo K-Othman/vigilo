@@ -3,11 +3,6 @@ variable "project_name" {
   type        = string
 }
 
-variable "repository_name" {
-  description = "GitHub repo in owner/name form, used in the Repository tag"
-  type        = string
-}
-
 variable "vpc_cidr" {
   description = "CIDR range for the whole VPC"
   type        = string
