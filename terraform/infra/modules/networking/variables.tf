@@ -1,4 +1,4 @@
-variable "project_name" {
+variable "name" {
   description = "Prefix for resource names and the Project tag"
   type        = string
 }
@@ -18,12 +18,12 @@ variable "vigilo_public_subnet" {
   type        = list(string)
 }
 
-variable "vigilo_app_private_subnets" {
+variable "vigilo_app_private_subnet" {
   description = "Private app subnet CIDRs for ECS tasks, one per AZ"
   type        = list(string)
 }
 
-variable "vigilo_db_private_subnets" {
+variable "vigilo_db_private_subnet" {
   description = "Private DB subnet CIDRs for RDS, one per AZ"
   type        = list(string)
 }
