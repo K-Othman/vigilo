@@ -3,7 +3,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project    = var.project_name
+      Project    = var.name
       ManagedBy  = "terraform"
       Repository = var.repository_name
     }

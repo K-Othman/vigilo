@@ -4,7 +4,7 @@ variable "aws_region" {
   default     = "eu-west-2"
 }
 
-variable "project_name" {
+variable "name" {
   description = "Prefix for resource names and the Project tag"
   type        = string
   default     = "vigilo"
