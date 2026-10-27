@@ -12,7 +12,7 @@ module "networking" {
 module "security-groups" {
   source = "./modules/security-groups"
 
-  name = var.name
-  vpc_id = module.networking.vpc_id
+  name     = var.name
+  vpc_id   = module.networking.vpc_id
   vpc_cidr = var.vpc_cidr
 }
