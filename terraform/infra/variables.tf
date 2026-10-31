@@ -45,3 +45,15 @@ variable "db_subnets" {
   type        = list(string)
   default     = ["10.0.21.0/24", "10.0.22.0/24"]
 }
+
+variable "domain_name" {
+  description = "Public domain for the app"
+  type        = string
+  default     = "vigilo.karimothman.co.uk"
+}
+
+variable "zone_name" {
+  description = "Existing Route 53 hosted zone"
+  type        = string
+  default     = "karimothman.co.uk"
+}
