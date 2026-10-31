@@ -23,3 +23,13 @@ module "acm" {
   domain_name = var.domain_name
   zone_name   = var.zone_name
 }
+
+module "alb" {
+  source = "./modules/alb"
+
+  name              = var.name
+  vpc_id            = module.networking.vpc_id
+  alb_sg_id         = module.security-groups.alb_sg_id
+  public_subnet_ids = module.networking.public_subnet_ids
+  certificate_arn   = module.acm.certificate_arn
+}
