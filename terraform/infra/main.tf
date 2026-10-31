@@ -16,3 +16,10 @@ module "security-groups" {
   vpc_id   = module.networking.vpc_id
   vpc_cidr = var.vpc_cidr
 }
+
+module "acm" {
+  source = "./modules/acm"
+
+  domain_name = var.domain_name
+  zone_name   = var.zone_name
+}
