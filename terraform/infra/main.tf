@@ -33,3 +33,11 @@ module "alb" {
   public_subnet_ids = module.networking.public_subnet_ids
   certificate_arn   = module.acm.certificate_arn
 }
+
+module "rds" {
+  source = "./modules/rds"
+
+  name          = var.name
+  db_subnet_ids = module.networking.private_db_subnet_ids
+  db_sg_id      = module.security-groups.alb_sg_id
+}
