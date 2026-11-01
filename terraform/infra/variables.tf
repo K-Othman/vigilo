@@ -61,5 +61,5 @@ variable "zone_name" {
 variable "app_image" {
   description = "Image to deploy, tagged with a commit SHA"
   type        = string
-  default     = "899259775765.dkr.ecr.eu-west-2.amazonaws.com/vigilo:PASTE_THE_EXACT_TAG"
+  default     = "899259775765.dkr.ecr.eu-west-2.amazonaws.com/vigilo:f63a"
 }
