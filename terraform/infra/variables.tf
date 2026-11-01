@@ -57,3 +57,9 @@ variable "zone_name" {
   type        = string
   default     = "karimothman.co.uk"
 }
+
+variable "app_image" {
+  description = "Image to deploy, tagged with a commit SHA"
+  type        = string
+  default     = "899259775765.dkr.ecr.eu-west-2.amazonaws.com/vigilo:PASTE_THE_EXACT_TAG"
+}
