@@ -39,7 +39,7 @@ module "rds" {
 
   name          = var.name
   db_subnet_ids = module.networking.private_db_subnet_ids
-  db_sg_id      = module.security-groups.alb_sg_id
+  db_sg_id      = module.security-groups.db_sg_id
 }
 
 module "ecs" {
