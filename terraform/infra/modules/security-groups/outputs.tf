@@ -13,7 +13,7 @@ output "worker_sg_id" {
   value       = aws_security_group.worker.id
 }
 
-output "DB_sg_id" {
+output "db_sg_id" {
   description = "Security group for RDS"
   value       = aws_security_group.db.id
 }
