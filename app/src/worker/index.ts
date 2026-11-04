@@ -38,14 +38,13 @@ async function runOnce() {
       );
 
       console.log(
-        `${result.isUp ? "UP  " : "DOWN"} ${site.url} ${result.responseTimeMs ?? "-"}ms ${result.error ?? ""}`
+        `${result.isUp ? "UP  " : "DOWN"} ${site.url} ${result.responseTimeMs != null ? `${result.responseTimeMs}ms` : "-"} ${result.error ?? ""}`
       );
     })
   );
 }
 
 async function main() {
-  console.log(`Worker started, checking every ${INTERVAL_MS / 1000}s`);
 
    try {
     await migrate();

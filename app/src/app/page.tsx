@@ -118,7 +118,7 @@ async function SiteList() {
               </span>
               <span>
                 {site.checked_at
-                  ? `Checked ${new Date(site.checked_at).toLocaleTimeString("en-GB")}`
+                  ? `Checked ${new Date(site.checked_at).toLocaleTimeString("en-GB", { timeZone: "Europe/London" })}`
                   : "Not checked yet"}
               </span>
             </div>
