@@ -47,7 +47,7 @@ module "ecs" {
 
   name             = var.name
   aws_region       = var.aws_region
-  image            = var.app_image
+  image            = "${var.ecr_repo_url}:${data.aws_ssm_parameter.image_tag.insecure_value}"
   app_subnet_ids   = module.networking.private_app_subnet_ids
   web_sg_id        = module.security-groups.web_sg_id
   worker_sg_id     = module.security-groups.worker_sg_id
@@ -59,4 +59,9 @@ module "ecs" {
   db_secret_arn    = module.rds.db_secret_arn
 
   depends_on = [module.alb]
+}
+
+# The build pipeline writes the current image tag here; Terraform only reads it
+data "aws_ssm_parameter" "image_tag" {
+  name = "/${var.name}/image_tag"
 }

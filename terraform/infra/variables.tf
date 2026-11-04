@@ -58,8 +58,8 @@ variable "zone_name" {
   default     = "karimothman.co.uk"
 }
 
-variable "app_image" {
-  description = "Image to deploy, tagged with a commit SHA"
+variable "ecr_repo_url" {
+  description = "ECR repository for the app image (tag comes from SSM)"
   type        = string
-  default     = "899259775765.dkr.ecr.eu-west-2.amazonaws.com/vigilo:f63a"
+  default     = "899259775765.dkr.ecr.eu-west-2.amazonaws.com/vigilo"
 }

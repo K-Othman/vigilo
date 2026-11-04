@@ -1,6 +1,7 @@
 name: Terraform
 
 on:
+  workflow_call:
   pull_request:
     branches: [main]
     paths:
@@ -59,3 +60,18 @@ jobs:
       - name: Apply
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: terraform apply -input=false tfplan
+        
+      - name: Wait for ECS services to stabilise
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: aws ecs wait services-stable --cluster vigilo-cluster --services vigilo-web vigilo-worker
+
+      - name: Health check
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          for i in 1 2 3 4 5; do
+            if curl -fsS https://vigilo.karimothman.co.uk/health; then
+              echo "Healthy"; exit 0
+            fi
+            echo "Attempt $i failed, retrying in 15s"; sleep 15
+          done
+          echo "Health check failed"; exit 1
