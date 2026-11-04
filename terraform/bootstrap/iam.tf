@@ -10,10 +10,10 @@ locals {
 }
 
 
-  # --- Trust policies: WHO may assume each role ---
+# --- Trust policies: WHO may assume each role ---
 
 
-  # --- Apply role: only workflows running on main ---
+# --- Apply role: only workflows running on main ---
 data "aws_iam_policy_document" "apply_trust" {
   statement {
     effect  = "Allow"
@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "apply_trust" {
   }
 }
 
-  # --- Plan role: only pull request workflows ---
+# --- Plan role: only pull request workflows ---
 data "aws_iam_policy_document" "plan_trust" {
   statement {
     effect  = "Allow"
