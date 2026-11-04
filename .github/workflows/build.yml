@@ -41,7 +41,7 @@ jobs:
         run: docker build --platform linux/amd64 -t ${{ env.ECR_REPO }}:${{ steps.meta.outputs.tag }} .
 
       - name: Scan image (fail on high or critical)
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           image-ref: ${{ env.ECR_REPO }}:${{ steps.meta.outputs.tag }}
           severity: HIGH,CRITICAL
