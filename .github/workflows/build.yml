@@ -1,0 +1,80 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "Dockerfile"
+      - ".dockerignore"
+      - ".github/workflows/build.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "Dockerfile"
+      - ".dockerignore"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-2
+  ECR_REPO: vigilo
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Work out the image tag
+        id: meta
+        run: echo "tag=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build image
+        run: docker build --platform linux/amd64 -t ${{ env.ECR_REPO }}:${{ steps.meta.outputs.tag }} .
+
+      - name: Scan image (fail on high or critical)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.ECR_REPO }}:${{ steps.meta.outputs.tag }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      # Everything below only runs on main: PRs build and scan, but never push
+      - name: Assume apply role
+        if: github.event_name != 'pull_request'
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to ECR
+        if: github.event_name != 'pull_request'
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push image
+        if: github.event_name != 'pull_request'
+        run: |
+          IMAGE=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.tag }}
+          docker tag ${{ env.ECR_REPO }}:${{ steps.meta.outputs.tag }} "$IMAGE"
+          docker push "$IMAGE"
+
+      - name: Record the new tag in SSM
+        if: github.event_name != 'pull_request'
+        run: |
+          aws ssm put-parameter --name /vigilo/image_tag --type String \
+            --value "${{ steps.meta.outputs.tag }}" --overwrite
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/terraform.yml
