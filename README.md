@@ -50,7 +50,7 @@ The worker creates its own tables on start (`CREATE TABLE IF NOT EXISTS`, seed r
 
 ## Architecture
 
-![Architecture](docs/screenshots/architecture.png)
+![Architecture](docs/screenshots/vigilo-architecture.png)
 
 - Custom VPC (`10.0.0.0/16`) across two availability zones (`eu-west-2a`, `eu-west-2b`)
 - Six subnets in three tiers:
