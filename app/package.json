@@ -11,7 +11,7 @@
     "build:worker": "esbuild src/worker/index.ts --bundle --platform=node --target=node24 --outfile=dist/worker.js --external:pg-native"
   },
   "dependencies": {
-    "next": "16.4.0",
+    "next": "^16.4.1",
     "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
@@ -24,7 +24,7 @@
     "@types/react-dom": "^19",
     "esbuild": "^0.28.2",
     "eslint": "^9",
-    "eslint-config-next": "16.4.0",
+    "eslint-config-next": "^16.4.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"
