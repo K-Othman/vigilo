@@ -9,11 +9,11 @@ locals {
   sub_prefix      = "repo:${var.github_owner}@${var.github_owner_id}/${var.github_repo}@${var.github_repo_id}"
 }
 
-# ===========================================================================
-# Trust policies: WHO may assume each role
-# ===========================================================================
 
-# Apply role: only workflows running on main
+  # --- Trust policies: WHO may assume each role ---
+
+
+  # --- Apply role: only workflows running on main ---
 data "aws_iam_policy_document" "apply_trust" {
   statement {
     effect  = "Allow"
@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "apply_trust" {
   }
 }
 
-# Plan role: only pull request workflows
+  # --- Plan role: only pull request workflows ---
 data "aws_iam_policy_document" "plan_trust" {
   statement {
     effect  = "Allow"
@@ -73,9 +73,9 @@ resource "aws_iam_role" "github_plan" {
   assume_role_policy = data.aws_iam_policy_document.plan_trust.json
 }
 
-# ===========================================================================
-# Apply policy 1 of 2: state, networking, load balancer, certificate, DNS
-# ===========================================================================
+
+# --- Apply policy 1 of 2: state, networking, load balancer, certificate, DNS ---
+
 
 data "aws_iam_policy_document" "github_apply" {
   # --- Terraform state ---
@@ -222,6 +222,19 @@ data "aws_iam_policy_document" "github_apply" {
     ]
     resources = ["arn:aws:route53:::hostedzone/${var.hosted_zone_id}"]
   }
+
+  # --- Current image tag, shared between the build and Terraform pipelines ---
+  statement {
+    sid = "ImageTagParameter"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:PutParameter",
+      "ssm:DeleteParameter",
+      "ssm:AddTagsToResource",
+      "ssm:ListTagsForResource",
+    ]
+    resources = ["arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${var.project_name}/*"]
+  }
 }
 
 resource "aws_iam_policy" "github_apply" {
@@ -234,9 +247,8 @@ resource "aws_iam_role_policy_attachment" "github_apply" {
   policy_arn = aws_iam_policy.github_apply.arn
 }
 
-# ===========================================================================
-# Apply policy 2 of 2: database, containers, registry, logs, IAM, safety net
-# ===========================================================================
+
+# --- Apply policy 2 of 2: database, containers, registry, logs, IAM, safety net ---
 
 data "aws_iam_policy_document" "github_apply_platform" {
   # --- Database ---
@@ -460,9 +472,7 @@ resource "aws_iam_role_policy_attachment" "github_apply_platform" {
   policy_arn = aws_iam_policy.github_apply_platform.arn
 }
 
-# ===========================================================================
-# Plan role permissions: read everything, write only the lock file
-# ===========================================================================
+# --- Plan role permissions: read everything, write only the lock file ---
 
 resource "aws_iam_role_policy_attachment" "github_plan_readonly" {
   role       = aws_iam_role.github_plan.name
@@ -482,7 +492,7 @@ data "aws_iam_policy_document" "github_plan_state" {
     resources = ["${aws_s3_bucket.bootstrap_s3_bucket.arn}/vigilo/*"]
   }
 
-  # plan takes the lock too, so it must create and remove the .tflock file
+  # --- plan takes the lock too, so it must create and remove the .tflock file ---
   statement {
     sid = "LockFileOnly"
     actions = [
